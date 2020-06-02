@@ -2,7 +2,7 @@ import os
 import shutil
 # Program crate by Devil64-Dev
 # E-mail: devil64dev@gmail.com
-full_path = ""  # global variable for save full path for any file
+full_path = paths = ""  # global variable for save full path for any file
 
 
 # this function help to get a valid path for skin_folder
@@ -108,8 +108,8 @@ def get_backup_paths(mod_skin_path):
 
 
 # this function call return full path of any backup file, each item start in Art or similar path
-def get_backup_file_path():
-    skin_folder = get_skin_folder()  # get skin folder
+def get_backup_file_path(skin_folder):
+    global paths
     paths = get_backup_paths(skin_folder)  # get backup paths
     current_work_directory = os.getcwd()  # save script call directory
     # when get_backup_paths is called the directory is change again to script call directory
@@ -135,6 +135,58 @@ def get_recursive_path(path):
             get_recursive_path(os.listdir()[0])
 
 
-# print result
-for item in get_backup_file_path():
-    print(item)
+# get backup files and save it
+def get_ml_assets():
+    while True:
+        ml_assets_folder = input("    Input assets folder for Mobile Legends: ")
+        if os.path.exists(ml_assets_folder):
+            print("  Checking folder...")
+            old_directory = os.getcwd()
+            os.chdir(ml_assets_folder)
+            bool_valid = False
+            for item in paths:
+                if os.path.exists(item):
+                    print("  Found: {}".format(item))
+                    bool_valid = True
+                else:
+                    print("  Not fount: {}".format(item))
+                    bool_valid = False
+            os.chdir(old_directory)
+            if bool_valid:
+                print("  Folder correct.")
+                break
+            else:
+                print("  Folder exist but no contain necessary files.")
+                print("  Try again...")
+        else:
+            print("  Folder not exists.\n  Try again...")
+
+    return ml_assets_folder
+
+
+def backup():
+    skin_folder = get_skin_folder()  # get skin folder
+    backup_files = get_backup_file_path(skin_folder)
+    ml_assets = get_ml_assets()
+    backup_folder = set_output_skin_folder()
+    # make need folders
+    old_dir = os.getcwd()
+    os.chdir(backup_folder)
+    print("  Creating folders...")
+    for item in paths:
+        print("  Created: {}".format(item))
+        os.makedirs(item)
+    print("  ok.")
+    backup_folder = os.getcwd()  # absolute path to backup folder
+    # now copy files
+    os.chdir(old_dir)
+    os.chdir(ml_assets)
+    count = 0
+    for item in backup_files:
+        if not os.path.exists(item):
+            print("  Skipping: {}".format(item))
+        else:
+            shutil.copy(item, backup_folder+"/"+item)
+
+
+backup()
